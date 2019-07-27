@@ -11,6 +11,8 @@ import model
 import dataloader
 import platform
 from tqdm import tqdm
+from torch.nn import DataParallel
+
 
 # For parsing commandline arguments
 parser = argparse.ArgumentParser()
@@ -142,13 +144,17 @@ def main():
     flowComp.to(device)
     for param in flowComp.parameters():
         param.requires_grad = False
+    flowComp = DataParallel(flowComp)
+
     ArbTimeFlowIntrp = model.UNet(20, 5)
     ArbTimeFlowIntrp.to(device)
     for param in ArbTimeFlowIntrp.parameters():
         param.requires_grad = False
+    ArbTimeFlowIntrp = DataParallel(ArbTimeFlowIntrp)
 
     flowBackWarp = model.backWarp(videoFrames.dim[0], videoFrames.dim[1], device)
     flowBackWarp = flowBackWarp.to(device)
+    flowBackWarp = DataParallel(flowBackWarp)
 
     dict1 = torch.load(args.checkpoint, map_location='cpu')
     ArbTimeFlowIntrp.load_state_dict(dict1['state_dictAT'])
